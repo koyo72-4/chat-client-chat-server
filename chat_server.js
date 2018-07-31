@@ -8,6 +8,7 @@ const House = require('./lib/house');
 
 //let messages = [];
 let chatHouse = new House();
+chatHouse.roomWithId('general').name = 'General';
 
 http.createServer(handleRequest).listen(port);
 console.log('Listening on port ' + port);
@@ -15,25 +16,32 @@ console.log('Listening on port ' + port);
 function handleRequest(request, response) {
     let assistant = new Assistant(request, response);
     let path = assistant.path;
-    console.log('Finding this path:', path);
-    // let messages = [];        // the messages array will get cleared every time handleRequest is called (messages get reinstantiated every time we start our server up)
+
     let pathParams = parsePath(path);
     console.log({ pathParams });
-    let data;
-    let type;
 
     try {
         if (path === '/') {
             assistant.sendFile('./public/index.html');
         } else if (pathParams.action === 'room') {
-            assistant.parsePostParams(params => {
-                console.log('params returned from parsePostParams:', params);
-                chatHouse.roomWithId(params.roomId).name = params.roomName;
-                data = JSON.stringify(params);
-                console.log('data:', data);
-                type = mime.lookup('json');
+            if (request.method === 'POST') {
+                assistant.parsePostParams(params => {
+                    console.log('params returned from parsePostParams:', params);
+                    chatHouse.roomWithId(params.roomId).name = params.roomName;
+                    let data = JSON.stringify(params);
+                    console.log('data:', data);
+                    let type = mime.lookup('json');
+                    assistant.finishResponse(type, data);
+                });
+            } else if (request.method === 'GET') {
+                let allRooms = chatHouse.rooms;
+                let roomIdArray = Object.values(allRooms).map(room => room.id);
+                let roomNameArray = Object.values(allRooms).map(room => room.name);
+                let roomObject = { idArray: roomIdArray, nameArray: roomNameArray };
+                let data = JSON.stringify(roomObject);
+                let type = mime.lookup('json');
                 assistant.finishResponse(type, data);
-            });
+            }
         } else if (pathParams.action === 'chat') {
             if (request.method === 'GET') {
                 console.log('assistant.url.search:', assistant.url.search);
@@ -52,9 +60,9 @@ function handleRequest(request, response) {
                     console.log('params returned from parsePostParams:', params);
                     chatHouse.sendMessageToRoom(room, params);
                     let dataArray = chatHouse.roomWithId(room).messages;
-                    data = JSON.stringify(dataArray);
+                    let data = JSON.stringify(dataArray);
                     console.log('data:', data);
-                    type = mime.lookup('json');
+                    let type = mime.lookup('json');
                     assistant.finishResponse(type, data);
                 });
             }
@@ -92,8 +100,8 @@ function prepareGetResponse(pathParams, previousTime) {
     let messages = chatHouse.roomWithId(room).messagesSince(previousTime);
     console.log('messages:', messages);
     let dataObject = { room: room, messages: messages };
-    data = JSON.stringify(dataObject);
+    let data = JSON.stringify(dataObject);
     console.log('data:', data);
-    type = mime.lookup('json');
+    let type = mime.lookup('json');
     return { data: data, type: type };
 }
