@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--with Brian and Sam-->
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link href="./public/style.css" type="text/css" rel="stylesheet">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+</head>
+<body>
+    <h1>The Chat House</h1>
+    <h2 id="room-name">Room: General</h2>
+    <select id="room-select" method="get" action="chat">
+        <option value="">Change rooms</option>
+        <option value="general">General</option>
+    </select>
+    <div id="make-room">
+        <form id="room-form" action="room" method="post">
+            <label for="type-room">Add a new room to the Chat House:</label>
+            <input type="text" name="type-room" id="type-room" />
+            <input type="submit">
+            <!-- <button type="submit" id="submit-room-name">Submit</button> -->
+        </form>
+    </div>
+    <br />
+    <div id="form-input">
+        <form id="chat-form" action="chat" method="post">
+            Name: <input type="text" name="author">
+            <br>
+            Message: <input type="text" name="body">
+            <input type="submit">
+        </form>
+        <button id="refresh" method="get" action="chat">Refresh</button>
+        <select id="since-select">
+            <option value="">How recent should the message results be?</option>
+            <!-- <option value="5s">5 seconds ago</option> -->
+            <option value="10s">10 seconds ago</option>
+            <!-- <option value="15s">15 seconds ago</option> -->
+            <option value="1min">1 minute ago</option>
+            <option value="5min">5 minutes ago</option>
+            <!-- <option value="15min">15 minutes ago</option>
+            <option value="1hour">1 hour ago</option>
+            <option value="24hours">24 hours ago</option> -->
+            <option value="allTime">All time</option>
+        </select>
+    </div>
+    <br />
+    <div id="chat-log">
+    </div>
+    
+    <script>
+        let chatForm = document.getElementById('chat-form');
+        let chatLog = document.getElementById('chat-log');
+        let refreshButton = document.getElementById('refresh');
+        let sinceSelect = document.getElementById('since-select');
+
+        let roomSelect = document.getElementById('room-select');
+        let roomh2 = document.getElementById('room-name');
+        let roomInput = document.getElementById('type-room');
+        let roomForm = document.getElementById('room-form');
+        // let roomButton = document.getElementById('submit-room-name');
+
+        let mostRecentMessageAt = '';
+        let roomName = 'General';
+        let room = 'general';
+
+
+        roomForm.addEventListener('submit', event => {
+            let roomValue = roomInput.value;
+            let lowerCaseRoomValue = roomValue.toLowerCase().replace(/[^a-z]/g, '');
+            let newOption = document.createElement('option');
+            newOption.textContent = roomValue;
+            newOption.value = lowerCaseRoomValue;
+            roomSelect.appendChild(newOption);
+            roomInput.value = '';
+
+            let params = new URLSearchParams();
+            params.append('roomId', lowerCaseRoomValue);
+            params.append('roomName', roomValue);
+
+            let roomPostUrl = '/room';
+
+            fetch(roomPostUrl, {
+                method: 'POST',
+                body: params
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(roomResponse => {
+                console.log('roomResponse in Room POST:', roomResponse);
+            })
+
+            event.preventDefault();
+        });
+
+        roomSelect.addEventListener('change', event => {
+            if (event.target.value !== "") {
+                room = event.target.value;
+                roomName = event.target.options[event.target.selectedIndex].text;
+                roomh2.textContent = 'Room: ' + roomName;
+
+                let getUrl;
+                if (mostRecentMessageAt) {
+                    getUrl = '/chat/' + room + '?since=' + mostRecentMessageAt;
+                } else {
+                    getUrl = '/chat/' + room;
+                }
+
+                let params = new URLSearchParams();
+                console.log('in refreshButton event listener');
+                console.log(getUrl);
+
+                fetch(getUrl, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    let dataResponse = response.json();
+                    console.log(dataResponse);
+                    return dataResponse;
+                })
+                .then(data => {
+                    console.log(data);
+                    chatLog.innerHTML = data.messages.map(message => message.body + '—' + message.author).join('<br>');
+                });
+            }
+        });
+
+        sinceSelect.addEventListener('change', event => {
+            console.log('select value:', event.target.value);
+            mostRecentMessageAt = event.target.value;
+        });
+
+        refreshButton.addEventListener('click', (event) => {
+            let getUrl;
+            if (mostRecentMessageAt) {
+                getUrl = '/chat/' + room + '?since=' + mostRecentMessageAt;
+            } else {
+                getUrl = '/chat/' + room;
+            }
+
+            let params = new URLSearchParams();
+            console.log('in refreshButton event listener');
+            console.log(getUrl);
+
+            fetch(getUrl, {
+                method: 'GET'
+            })
+            .then(response => {
+                let dataResponse = response.json();
+                console.log(dataResponse);
+                return dataResponse;
+            })
+            .then(data => {
+                console.log(data);
+                chatLog.innerHTML = data.messages.map(message => message.body + '—' + message.author).join('<br>');
+            });
+        });
+
+        chatForm.addEventListener('submit', (event) => {
+            let chatPostUrl = '/chat/' + room;
+
+            let messageInput = chatForm.querySelector('input[name=body]');
+            let message = messageInput.value;
+            let nameInput = chatForm.querySelector('input[name=author]');
+            let name = nameInput.value;
+            let params = new URLSearchParams();
+            params.append('author', name);
+            params.append('body', message);
+
+            fetch(chatPostUrl, {
+                method: 'POST',
+                body: params
+            })
+            .then(response => {
+                let messageArray = response.json();
+                console.log('messageArray in fetch POST:', messageArray);
+                return messageArray;
+            })
+            .then(messages => {
+                chatLog.innerHTML = messages.map(message => message.body + '—' + message.author).join('<br>');
+                messageInput.value = '';
+            });
+            event.preventDefault();
+        });
+
+    </script>
+
+</body>
+</html>
