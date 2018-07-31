@@ -1,12 +1,10 @@
-//setup requirements
-const http = require('http');           //const like let, but can't change variable. this adds "http"
+const http = require('http');     
 const mime = require('mime-types');
-const port = process.env.PORT || 5000;      //if there is a port, it will use that. OR it will default to 5000. Best to give it a default port. 
+const port = process.env.PORT || 5000; 
 
 const Assistant = require('./lib/assistant');
 const House = require('./lib/house');
 
-//let messages = [];
 let chatHouse = new House();
 chatHouse.roomWithId('general').name = 'General';
 

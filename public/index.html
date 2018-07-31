@@ -74,14 +74,7 @@
                     getUrl = '/chat/' + room;
                 }
 
-                //let params = new URLSearchParams();
-
-                fetch(getUrl
-                    // , 
-                    // {
-                    //     method: 'GET'
-                    // }
-                )
+                fetch(getUrl)
                 .then(response => {
                     let dataResponse = response.json();
                     return dataResponse;
@@ -186,13 +179,7 @@
                 getUrl = '/chat/' + room;
             }
 
-            // let params = new URLSearchParams();
-
-            fetch(getUrl
-                // , {
-                // method: 'GET'
-                // }
-            )
+            fetch(getUrl)
             .then(response => {
                 let dataResponse = response.json();
                 return dataResponse;
