@@ -60,6 +60,30 @@
         let room = 'general';
 
 
+
+        window.setInterval(() => {
+            let roomGetUrl = '/room';
+
+            fetch(roomGetUrl, {
+                method: 'GET'
+            })
+            .then(response => {
+                let dataResponse = response.json();
+                console.log(dataResponse);
+                return dataResponse;
+            })
+            .then(data => {
+                console.log(data);
+                roomSelect.innerHTML = '<option value="">Change rooms</option>';
+                for (let i = 0; i < data.nameArray.length; i++) {
+                    let newOption = document.createElement('option');
+                    newOption.textContent = data.nameArray[i];
+                    newOption.value = data.idArray[i];
+                    roomSelect.appendChild(newOption);
+                }
+            });
+        }, 3000);
+
         roomSelect.addEventListener('change', event => {
             if (event.target.value !== "") {
                 room = event.target.value;
@@ -85,34 +109,6 @@
             }
         });
 
-        // roomSelect.addEventListener('click', event => {
-        //     let roomGetUrl = '/room';
-
-        //     let params = new URLSearchParams();
-
-        //     if (event.target.options.length > 2) {
-        //         fetch(roomGetUrl, {
-        //             method: 'GET'
-        //         })
-        //         .then(response => {
-        //             let dataResponse = response.json();
-        //             console.log(dataResponse);
-        //             return dataResponse;
-        //         })
-        //         .then(data => {
-        //             console.log(data);
-        //             let options = event.target.options;
-        //             for (let i = 2; i <= options.length; i++) {
-        //                 if (options[i]) event.target.options.remove(i);
-        //                 let newOption = document.createElement('option');
-        //                 newOption.textContent = data.nameArray[i - 1];
-        //                 newOption.value = data.idArray[i - 1];
-        //                 roomSelect.appendChild(newOption);
-        //             }
-        //         });
-        //     }
-        // });
-
         roomForm.addEventListener('submit', event => {
             let roomInput = document.getElementById('type-room');
             let roomValue = roomInput.value;
@@ -137,7 +133,7 @@
                 newOption.value = roomResponse.roomId;
                 roomSelect.appendChild(newOption);
                 roomInput.value = '';
-            })
+            });
 
             event.preventDefault();
         });
