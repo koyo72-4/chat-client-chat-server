@@ -111,7 +111,7 @@
                     return dataResponse;
                 })
                 .then(data => {
-                    chatLog.innerHTML = data.messages.map(message => message.body + '—' + message.author).join('<br>');
+                    chatLog.innerHTML = data.messages.map(message => message.body + '&ensp;—' + message.author).join('<br>');
                 });
             }
         });
@@ -164,7 +164,7 @@
                     return messageArray;
                 })
                 .then(messages => {
-                    chatLog.innerHTML = messages.map(message => message.body + '—' + message.author).join('<br>');
+                    chatLog.innerHTML = messages.map(message => message.body + '&ensp;—' + message.author).join('<br>');
                     messageInput.value = '';
                 });
             event.preventDefault();
@@ -188,7 +188,7 @@
                     return dataResponse;
                 })
                 .then(data => {
-                    chatLog.innerHTML = data.messages.map(message => message.body + '—' + message.author).join('<br>');
+                    chatLog.innerHTML = data.messages.map(message => message.body + '&ensp;—' + message.author).join('<br>');
                 });
         });
 
